@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title></title>
+	<style type="text/css">
+		#main {
+			width: 100%;
+			height: 600px;
+		}
+		.name {
+			margin: 50px;
+		}
+	</style>
+	<script src='https://cdn.bootcss.com/echarts/3.7.0/echarts.simple.js'></script>
+	<script src='./lib/echarts-wordcloud.min.js'></script>
+</head>
+<body>
+
+	<div id="wrap"></div> 
+	<div id="main"></div>
+
+	<script type="text/javascript">
+		var list = [];
+		var chart = echarts.init(document.getElementById('main'));
+		var option = {
+			series: [{
+				type: 'wordCloud',
+				shape: 'circle',
+				//maskImage: maskImage,
+				left: 'center',
+		        top: 'center',
+		        width: '70%',
+		        height: '80%',
+		        right: null,
+		        bottom: null,
+		        sizeRange: [12, 60],
+		        rotationRange: [-90, 90],
+        		rotationStep: 45,
+        		gridSize: 8,
+        		drawOutOfBound: false,
+        		textStyle: {
+		            normal: {
+		                fontFamily: 'sans-serif',
+		                fontWeight: 'bold',
+		                // Color can be a callback function or a color string
+		                color: function () {
+		                    // Random color
+		                    return 'rgb(' + [
+		                        Math.round(Math.random() * 160),
+		                        Math.round(Math.random() * 160),
+		                        Math.round(Math.random() * 160)
+		                    ].join(',') + ')';
+		                }
+		            },
+		            emphasis: {
+		                shadowBlur: 10,
+		                shadowColor: '#333'
+		            }
+		        },
+		        data: list
+			}]
+		};
+
+		chart.setOption(option);
+
+		 window.onresize = chart.resize;
+
+		var ws = new WebSocket("ws://localhost:8181");
+		ws.onopen = function(e) {
+			console.log('connection ok', e);
+		}
+		ws.onmessage = function(e) {
+			console.log(e.data);
+			list.push({'name': e.data, 'value': 1});
+			chart.setOption(option);
+		}
+		ws.onclose = function(e) {
+			console.log('onclose', e);
+		}
+		ws.onerror = function(e) {
+			console.log('onerror', e);
+		}
+
+		function render() {
+			var s = '';
+			for (var i = 0; i < list.length; i++) {
+				var span = '<h2 class="name">' + list[i] + '</h2>'
+				s += span;
+			}
+			document.getElementById('wrap').innerHTML = s;
+		}
+	</script>
+</body>
+</html>
